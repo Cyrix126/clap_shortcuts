@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = [
+  "clap_shortcuts",
+  "clap_shortcuts_derive",
+]

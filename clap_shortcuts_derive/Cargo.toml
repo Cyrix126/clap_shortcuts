@@ -1,0 +1,24 @@
+[package]
+name = "clap_shortcuts_derive"
+version = "0.1.0"
+edition = "2021"
+description = "macro derive for clap_shortcuts"
+publish = false # TODO
+repository = "https://github.com/Cyrix126/clap_shortcuts"
+license = "GPL-3.0-only"
+readme = "README.md"
+authors = ["Louis-Marie Baer <lm@baermail.fr>"]
+keywords = ["cli", "ask", "prompt", "question", "interactive", "derive"]
+categories = ["command-line-interface", "derive"]
+include = ["./src"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "2"
+quote = "1"
+darling = "0.20"
+proc-macro2 = "1"
+heck = "0.4.1"
+quote_tool_params = {git="https://github.com/Cyrix126/quote_tool_params"}
