@@ -58,7 +58,7 @@ fn main() {
 clap will help the user to enter
 
 ```bash,ignore
-binary --shortcut a
+binary --shortcut_ref shortcut-a
 ```
 The output for this example will be:
 
