@@ -1,6 +1,6 @@
 [package]
 name = "clap_shortcuts"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "library to generate clap args to execute function on field structs"
 publish = false # TODO need to merge inquire-time into upstream or publish it

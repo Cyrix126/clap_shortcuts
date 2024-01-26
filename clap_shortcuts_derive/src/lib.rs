@@ -53,78 +53,163 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
         .iter()
         .filter(|s| s.func.contains("&mut self"))
         .collect::<Vec<&Shortcut>>();
-    let lines_match_mut = get_match_lines(&shortcuts_mut);
+    let variants_mut = get_variants(&shortcuts_mut);
+    let lines_match_mut = get_match_lines(&shortcuts_mut, &variants_mut);
 
     let shortcuts_ref = attrs_struct
         .values
         .iter()
         .filter(|s| s.func.contains("&self"))
         .collect::<Vec<&Shortcut>>();
-    let lines_match_ref = get_match_lines(&shortcuts_ref);
+    let variants_ref = get_variants(&shortcuts_ref);
+    let lines_match_ref = get_match_lines(&shortcuts_ref, &variants_ref);
 
     let shortcuts_once = attrs_struct
         .values
         .iter()
         .filter(|s| !(s.func.contains("&self") || s.func.contains("&mut self")))
         .collect::<Vec<&Shortcut>>();
+    let variants_once = get_variants(&shortcuts_once);
+    let lines_match_once = get_match_lines(&shortcuts_once, &variants_once);
 
-    let lines_match_once = get_match_lines(&shortcuts_once);
-
-    let ok: TokenStream = "Ok(())".parse().unwrap();
-    let ok_ref = if !lines_match_ref.is_empty() {
-        quote! {#ok}
-    } else {
-        quote! {}
-    };
-    let ok_mut = if !lines_match_mut.is_empty() {
-        quote! {#ok}
-    } else {
-        quote! {}
-    };
-    let ok_once = if !lines_match_once.is_empty() {
-        quote! {#ok}
-    } else {
-        quote! {}
-    };
-    let trait_impl = quote! {
-            impl clap_shortcuts::ShortCuts<(#types_params)> for #name_struct {
-      fn shortcut_mut(&mut self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+    let content_mut = if !shortcuts_mut.is_empty() {
+        quote! {
                 #( #prepare_values)*
                 match &shortcut {
                     #( #lines_match_mut,)*
-                    _ => anyhow::bail!("This shortcut variant is not mutable, use another method of the trait Shortcut")
                 };
-                #ok_mut
-            }
-      fn shortcut_ref(&self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+        }
+    } else {
+        quote! {}
+    };
+    let content_ref = if !shortcuts_ref.is_empty() {
+        quote! {
                 #( #prepare_values)*
                 match &shortcut {
                     #( #lines_match_ref,)*
-                    _ => anyhow::bail!("This shortcut variant is not mutable, use another method of the trait Shortcut")
-                }
-                #ok_ref
-            }
-      fn shortcut_owned(self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+                };
+        }
+    } else {
+        quote! {}
+    };
+    let content_once = if !shortcuts_once.is_empty() {
+        quote! {
                 #( #prepare_values)*
                 match &shortcut {
                     #( #lines_match_once,)*
-                    _ => anyhow::bail!("This shortcut variant is not mutable, use another method of the trait Shortcut")
-                }
-                #ok_once
+                };
+        }
+    } else {
+        quote! {}
+    };
+
+    let trait_impl = quote! {
+            impl clap_shortcuts::ShortCuts<(#types_params)> for #name_struct {
+      fn shortcut_mut(&mut self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+                #content_mut
+                Ok(())
+            }
+      fn shortcut_ref(&self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+                #content_ref
+                Ok(())
+            }
+      fn shortcut_owned(self, shortcut: &impl clap::ValueEnum, params: (#types_params)) -> anyhow::Result<()> {
+                #content_once
+                Ok(())
             }
         }
     };
-    let name_enum: TokenStream = format!("ShortCuts{}", name_struct).parse().unwrap();
-    let variants = get_variants(&attrs_struct.values.iter().collect::<Vec<&Shortcut>>());
-    let enum_args = quote! {
+    let name_enum_ref: TokenStream = format!("ShortCuts{}Ref", name_struct).parse().unwrap();
+    let name_enum_mut: TokenStream = format!("ShortCuts{}Mut", name_struct).parse().unwrap();
+    let name_enum_once: TokenStream = format!("ShortCuts{}Once", name_struct).parse().unwrap();
+    let enum_ref = if !shortcuts_ref.is_empty() {
+        quote! {
         #[derive(clap::ValueEnum, Clone)]
-        enum #name_enum {
-            #( #variants),*
+        enum #name_enum_ref {
+            #( #variants_ref),*
         }
+            }
+    } else {
+        quote! {}
     };
+    let enum_mut = if !shortcuts_mut.is_empty() {
+        quote! {
+        #[derive(clap::ValueEnum, Clone)]
+        enum #name_enum_mut {
+            #( #variants_mut),*
+        }
+            }
+    } else {
+        quote! {}
+    };
+    let enum_once = if !shortcuts_once.is_empty() {
+        quote! {
+        #[derive(clap::ValueEnum, Clone)]
+        enum #name_enum_once {
+            #( #variants_once),*
+        }
+            }
+    } else {
+        quote! {}
+    };
+    let enum_args = quote! {
+        #enum_ref
+        #enum_mut
+        #enum_once
+    };
+    let name_arg: TokenStream = format!("ShortCutArg{}", name_struct).parse().unwrap();
+    let arg_ref = if !shortcuts_ref.is_empty() {
+        quote! {
+        #[clap(long, value_enum)]
+        shortcut_ref: Option<#name_enum_ref>,
+        }
+    } else {
+        quote!()
+    };
+    let arg_mut = if !shortcuts_mut.is_empty() {
+        quote! {
+        #[clap(long, value_enum)]
+        shortcut_mut: Option<#name_enum_mut>,
+        }
+    } else {
+        quote!()
+    };
+    let arg_once = if !shortcuts_once.is_empty() {
+        quote! {
+        #[clap(long, value_enum)]
+        shortcut_once: Option<#name_enum_once>,
+        }
+    } else {
+        quote!()
+    };
+    let mut some = 0;
+    if !shortcuts_ref.is_empty() {
+        some += 1
+    }
+    if !shortcuts_mut.is_empty() {
+        some += 1
+    }
+    if !shortcuts_once.is_empty() {
+        some += 1
+    }
+    let multiple = if some > 1 {
+        quote! { multiple = false}
+    } else {
+        quote! {}
+    };
+    let arg_group = quote! {
+    #[derive(clap::Args)]
+    #[group(required = true, #multiple)]
+    pub struct #name_arg {
+            #arg_ref
+            #arg_mut
+            #arg_once
+    }
+        };
     quote! {
         #trait_impl
         #enum_args
+        #arg_group
     }
     .into()
 }
@@ -135,14 +220,15 @@ fn get_variants(shortcuts: &[&Shortcut]) -> Vec<TokenStream> {
         .map(|s| format!("{}", AsUpperCamelCase(&s.name)).parse().unwrap())
         .collect::<Vec<TokenStream>>()
 }
-fn get_match_lines(shortcuts: &[&Shortcut]) -> Vec<TokenStream> {
-    let variants = get_variants(shortcuts);
+fn get_match_lines(shortcuts: &[&Shortcut], variants: &[TokenStream]) -> Vec<TokenStream> {
     shortcuts
         .iter()
         .enumerate()
         .map(|(index, s)| {
-            let func = s.func.replace("&mut self", "self").replace("&self", "self");
-            format!("&{} => {}", variants[index], func).parse().unwrap()
+            // let func = s.func.replace("&mut self", "self").replace("&self", "self");
+            format!("&{} => {}", variants[index], s.func)
+                .parse()
+                .unwrap()
         })
         .collect::<Vec<TokenStream>>()
 }

@@ -26,7 +26,7 @@ The method in which the process is happening depend of the borrow type first par
 
 ### Simple Example:
 
-```rust
+```rust,ignore
 use clap::Parser;
 use clap_shortcuts::ShortCuts;
 use clap_shortcuts_derive::ShortCuts;
@@ -40,18 +40,18 @@ struct Test {
 }
 #[derive(Parser)]
 struct Cli {
-    #[arg(value_enum)]
-    shortcut: ShortCutsTest,
+    #[clap(flatten)]
+    shortcut: ShortCutArgTest,
 }
 
 fn main() {
-    let cli = Cli {
-        shortcut: ShortCutsTest::ShortcutA,
-    };
-    let s = Test {
+    let cli = Cli::parse();
+    let test = Test {
         a: String::from("ok"),
     };
-    s.shortcut_ref(&cli.shortcut, ()).unwrap();
+    if let Some(s) = cli.shortcut.shortcut_ref {
+        test.shortcut_ref(&s, ()).unwrap();
+    }
 }
 ```
 
