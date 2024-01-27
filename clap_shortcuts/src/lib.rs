@@ -4,6 +4,7 @@
 use anyhow::Result;
 use clap::ValueEnum;
 pub extern crate clap;
+pub extern crate clap_shortcuts_derive;
 
 /// this trait allows to apply a function with params P on self depending of a variant clap::ValueEnum.
 /// Three methods exist to take self only as needed.
