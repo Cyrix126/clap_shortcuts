@@ -161,7 +161,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let arg_ref = if !shortcuts_ref.is_empty() {
         quote! {
         #[clap(long, value_enum)]
-        shortcut_ref: Option<#name_enum_ref>,
+        pub shortcut_ref: Option<#name_enum_ref>,
         }
     } else {
         quote!()
@@ -169,7 +169,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let arg_mut = if !shortcuts_mut.is_empty() {
         quote! {
         #[clap(long, value_enum)]
-        shortcut_mut: Option<#name_enum_mut>,
+        pub shortcut_mut: Option<#name_enum_mut>,
         }
     } else {
         quote!()
@@ -177,7 +177,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let arg_once = if !shortcuts_once.is_empty() {
         quote! {
         #[clap(long, value_enum)]
-        shortcut_once: Option<#name_enum_once>,
+        pub shortcut_once: Option<#name_enum_once>,
         }
     } else {
         quote!()
