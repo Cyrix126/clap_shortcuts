@@ -125,7 +125,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let enum_ref = if !shortcuts_ref.is_empty() {
         quote! {
         #[derive(clap::ValueEnum, Clone)]
-        enum #name_enum_ref {
+        pub enum #name_enum_ref {
             #( #variants_ref),*
         }
             }
@@ -135,7 +135,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let enum_mut = if !shortcuts_mut.is_empty() {
         quote! {
         #[derive(clap::ValueEnum, Clone)]
-        enum #name_enum_mut {
+        pub enum #name_enum_mut {
             #( #variants_mut),*
         }
             }
@@ -145,7 +145,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let enum_once = if !shortcuts_once.is_empty() {
         quote! {
         #[derive(clap::ValueEnum, Clone)]
-        enum #name_enum_once {
+        pub enum #name_enum_once {
             #( #variants_once),*
         }
             }
