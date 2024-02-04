@@ -45,7 +45,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     let prepare_values = if let Some(p) = &attrs_struct.params {
         prepare_values_from_params(p, "params")
     } else {
-        vec![]
+        TokenStream::new()
     };
 
     let shortcuts_mut = attrs_struct
@@ -74,7 +74,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
 
     let content_mut = if !shortcuts_mut.is_empty() {
         quote! {
-                #( #prepare_values)*
+                #prepare_values
                 match &shortcut {
                     #( #lines_match_mut,)*
                 };
@@ -84,7 +84,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     };
     let content_ref = if !shortcuts_ref.is_empty() {
         quote! {
-                #( #prepare_values)*
+                #prepare_values
                 match &shortcut {
                     #( #lines_match_ref,)*
                 };
@@ -94,7 +94,7 @@ pub fn promptable_macro_derive(input: proc_macro::TokenStream) -> proc_macro::To
     };
     let content_once = if !shortcuts_once.is_empty() {
         quote! {
-                #( #prepare_values)*
+                #prepare_values
                 match &shortcut {
                     #( #lines_match_once,)*
                 };
